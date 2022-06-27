@@ -1,44 +1,62 @@
 #include <iostream>
 #include <assert.h>
-int getPairNumber(int majorColorIdx, int minorColorIdx)
-{       
-    return majorColorIdx*5+minorColorIdx;  
-}
-const char* getMajorColor(int majorColorIdx, int minorColorIdx, const char* majorColor[])
-{       
-        int pairNumber = getPairNumber(majorColorIdx, minorColorIdx);
-		int majorColorIndex = (pairNumber-1) / 5;
-		
-		return majorColor[majorColorIndex];
-}	
-const char* getMinorColor(int majorColorIdx, int minorColorIdx, const char* minorColor[])
+#include "misaligned.hpp"
+#include "test_misaligned.hpp"
+
+namespace TelCoColorCoder
 {
-	    int pairNumber = getPairNumber(majorColorIdx, minorColorIdx);
-		int minorColorIndex = (pairNumber) % 5;
-		
-		return minorColor[minorColorIndex];
-}
-int printColorMap() {
-    const char* majorColor[] = {"White", "Red", "Black", "Yellow", "Violet"};
-    const char* minorColor[] = {"Blue", "Orange", "Green", "Brown", "Slate"};
-    int i = 0, j = 0;
-    for(i = 0; i < 5; i++) {
-        for(j = 0; j < 5; j++) {
-			std::cout << i * 5 + j << " | " << majorColor[i] << " | " << minorColor[i] << "\n";
-			
-			//test code added to validate the output separatly
-            assert(getPairNumber(i,j) == (i*5+j)+1);
-            assert(getMajorColor(i,j,majorColor) == majorColor[i]);
-            assert(getMinorColor(i,j,minorColor) == minorColor[j]);
-            
+const char* majorColor[] = {"White", "Red", "Black", "Yellow", "Violet"};
+const char* minorColor[] = {"Blue", "Orange", "Green", "Brown", "Slate"};
+const int   numberOfMajorColor = sizeof(majorColor)/sizeof(*majorColor);
+const int   numberOfMinorColor = sizeof(minorColor)/sizeof(*minorColor);
+const int   databaseSize       = numberOfMajorColor * numberOfMinorColor;
+
+void createColorCodeManual(const char* majorColor[], const char* minorColor[], ColorCode* ColorCodeDatabase[])
+{
+
+    for (int majorColorIdx = 0; majorColorIdx < numberOfMajorColor; majorColorIdx++)
+    {
+        for (int minorColorIdx = 0; minorColorIdx < numberOfMinorColor; minorColorIdx++)
+        {
+            ColorCodeDatabase[majorColorIdx * 5 + minorColorIdx] = new ColorCode;
+            ColorCodeDatabase[majorColorIdx * 5 + minorColorIdx]->m_majorColor = majorColor[majorColorIdx];
+            ColorCodeDatabase[majorColorIdx * 5 + minorColorIdx]->m_minorColor = minorColor[minorColorIdx];
+            ColorCodeDatabase[majorColorIdx * 5 + minorColorIdx]->m_pairNumber = (majorColorIdx * 5 + minorColorIdx) + 1;
         }
     }
-    return i * j;
+}
+int ColorCode::getPairNumber() const
+{       
+    return m_pairNumber;  
+}
+char const * ColorCode::getMajorColor() const
+{       
+   return m_majorColor;
+}
+char const* ColorCode::getMinorColor() const
+{
+	return m_minorColor;
+}
+int printColorCodeManual(ColorCode* ColorCodeDatabase[]) {
+    int database_index = 0;
+    for( database_index = 0; database_index < databaseSize; database_index++)
+            {
+                std::cout<< ColorCodeDatabase[database_index]->m_pairNumber << "     |"<<ColorCodeDatabase[database_index]->m_majorColor << "    | " << ColorCodeDatabase[database_index]->m_minorColor << "  |   "   <<std::endl;
+            }
+    return database_index;
+}
 }
 
 int main() {
-    int result = printColorMap();
-    assert(result == 25);
+    TelCoColorCoder::ColorCode* ColorCodeDatabase[TelCoColorCoder::databaseSize];
+    TelCoColorCoder::createColorCodeManual(TelCoColorCoder::majorColor, TelCoColorCoder::minorColor, ColorCodeDatabase);
+    testGetMinorColor(ColorCodeDatabase[1], TelCoColorCoder::minorColor[1]);
+    testGetMajorColor(ColorCodeDatabase[1], TelCoColorCoder::majorColor[0]);
+    testGetPairNumber(ColorCodeDatabase[1], 2);
+    testCreateColorCodeManual(ColorCodeDatabase, TelCoColorCoder::databaseSize, TelCoColorCoder::majorColor, TelCoColorCoder::minorColor);
+    assert(TelCoColorCoder::printColorCodeManual(ColorCodeDatabase) == TelCoColorCoder::databaseSize);
+
+
     std::cout << "All is well (maybe!)\n";
     return 0;
 }
