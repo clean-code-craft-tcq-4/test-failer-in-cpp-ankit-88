@@ -1,7 +1,5 @@
 #include<iostream>
 
-//Definition of Limits
-
 #define SIZE_S_LIMIT 38
 #define SIZE_M_LIMIT 42
 
