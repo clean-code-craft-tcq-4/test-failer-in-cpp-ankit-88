@@ -19,7 +19,6 @@ void test_tshirtsImplementation(void)
 {   
     struct sizeMap tshirt_item;
     sizeMap* commodity = &tshirt_item;
-    SIZE size;
 
     mapLengthToSizeName(37,commodity);
     assert(commodity->size == SIZE::S);
