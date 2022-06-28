@@ -81,10 +81,15 @@ static networkFuncPtr assignFunctionToFuncPtr(networkFuncPtr networkAlert, netwo
     }
 #endif
     // dummy line 
-    if (networkAlertStub == nullptr);
-    {//do nothing }
-        return assignNetworkFunc;
+    if (networkAlertStub == nullptr)
+    {
+      //do nothing }  
     }
+	else
+	{
+		//do nothing
+	}
+	return assignNetworkFunc;
 }
 int main()
 {
