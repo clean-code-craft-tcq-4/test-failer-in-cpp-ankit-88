@@ -1,41 +1,96 @@
 #include <iostream>
 #include <assert.h>
+#include "alerter.hpp"
+#include "test_alerter.hpp"
+#define PRODUCTION 1
+#define UNIT_TEST 0
+#define SW_STAGE PRODUCTION
 
-int alertFailureCount = 0;
+namespace Alert
+{
+    int alertFailureCount = 0;
 
-int networkAlertStub(float celcius) {
-    std::cout << "ALERT: Temperature is " << celcius << " celcius.\n";
-    // Return 200 for ok
-    // Return 500 for not-ok
-    // stub always succeeds and returns 200
-	if (celcius <=200)
-	{	
-		return 200;
-	}
-	else
-	{
-		return 500;
-	}
-}
-
-void alertInCelcius(float farenheit) {
-    float celcius = (farenheit - 32) * 5 / 9;
-    int returnCode = networkAlertStub(celcius);
-    if (returnCode != 200) {
-        // non-ok response is not an error! Issues happen in life!
-        // let us keep a count of failures to report
-        // However, this code doesn't count failures!
-        // Add a test below to catch this bug. Alter the stub above, if needed.
-        alertFailureCount += 0;
+// Fake Dependency created
+    int networkAlertStub(float celcius)
+    {
+        //stuff function to imitate network alert in absence of real network.
+        if (celcius <= 200)
+        {
+            std::cout << "Relax: Temperature is " << celcius << " celcius.\n";
+            return 200;
+        }
+        else
+        {
+            std::cout << "ALERT: Temperature is " << celcius << " celcius.\n";
+            return 500;
+        }
     }
-		
+ // Real Dependency   
+    int networkAlert(float celcius)
+    {
+        // do some network connections, http and other stuff.
+        if (celcius <= 200)
+        {
+            std::cout << "Relax: Temperature is " << celcius << " celcius.\n";
+            return 200;
+        }
+        else
+        {
+            std::cout << "ALERT: Temperature is " << celcius << " celcius.\n";
+            return 500;
+        }
+    }
+ // Splitted from original function to make it pure function and implement single responsiblity Principal
+    float convertFarenheitToCelcius(float farenheit)
+    {
+        return ((farenheit - 32) * 5 / 9);
+    }
+// Actual function with dependency inversion and dependency injection
+    void alertInCelcius(float farenheit, networkFuncPtr assignedNetworkFunction)
+    {
+        float celcius = convertFarenheitToCelcius(farenheit);
+        int returnCode = assignedNetworkFunction(celcius);
+        if (returnCode != 200) {
+            alertFailureCount += 1;
+        }
+        else
+        {
+            alertFailureCount += 0;  // doesnot impact functionality just added for sake of completion of if_else pair for code coverage
+        }
+
+    }
+}
+static networkFuncPtr assignFunctionToFuncPtr(networkFuncPtr networkAlert, networkFuncPtr networkAlertStub)
+{
+    networkFuncPtr assignNetworkFunc = nullptr;
+#if (SW_STAGE == PRODUCTION)
+    {
+        assignNetworkFunc = networkAlert;
+    }
+#elif (SW_STAGE == UNIT_TEST)
+    {
+        assignNetworkFunc = networkAlertStub;
+    }
+#else
+    {
+        //do nothing, for sake of completiona and future implementation
+    }
+#endif
+    return assignNetworkFunc;
 }
 
-int main() {
-    alertInCelcius(400.5);
-    alertInCelcius(303.6);
-	assert(alertFailureCount ==1);
-    std::cout << alertFailureCount << " alerts failed.\n";
-    std::cout << "All is well (maybe!)\n";
+int main()
+{
+    networkFuncPtr assignedNetworkFunc;
+    assignedNetworkFunc = assignFunctionToFuncPtr(&(Alert::networkAlert), &(Alert::networkAlertStub));
+
+
+    testNetworkAlertStub();
+    testNetworkAlert();
+    testConvertFarenheitToCelcius();
+    testAlertInCelcius(assignedNetworkFunc); // injected dependency by adding function pointer in orignal function
+
+
+    std::cout << "All is well (Definitely!)\n";
     return 0;
 }
