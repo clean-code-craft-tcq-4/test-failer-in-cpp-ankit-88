@@ -2,10 +2,14 @@
 #include <assert.h>
 #include "alerter.hpp"
 #include "test_alerter.hpp"
+
+//defines for chosing Software development cycle
 #define PRODUCTION 1
 #define UNIT_TEST 0
 #define SW_STAGE PRODUCTION
 
+//Helper function of main --> only used by main in this file hence static and outside Alert
+static networkFuncPtr assignFunctionToFuncPtr(networkFuncPtr networkAlert, networkFuncPtr networkAlertStub);
 namespace Alert
 {
     int alertFailureCount = 0;
