@@ -80,7 +80,7 @@ static networkFuncPtr assignFunctionToFuncPtr(networkFuncPtr networkAlert, netwo
         //do nothing, for sake of completiona and future implementation
     }
 #endif
-    // dummy line 
+    // dummy if...else to use 2nd function address to avoid usused parameter warning error in git.
     if (networkAlertStub == nullptr)
     {
       //do nothing }  
